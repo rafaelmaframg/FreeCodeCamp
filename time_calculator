@@ -1,112 +1,127 @@
-#!/usr/bin/env python
-# coding: utf-8
+def reverse_time(dig1, dig2, dig3, dig4, dias=0, dia_da_semana=None):
+    pm = 'AM'
+    later = ''
+    if dig1 > 1 or (dig1 >= 1 and dig2 >=2):
+        if dig1 >= 2 and dig2 > 4 or dig1 >= 3:
+            check = int(str(dig1)+str(dig2))
+            dias += (check // 24)
+            if dias == 1:
+                check -= 24
+                if len(str(check)) < 2:
+                    dig1 = 0
+                    dig2 = check
+                    later = ' (next day)'
+            if dias == 2:
+                check -= 48
+                if len(str(check)) < 2:
+                    dig1 = 0
+                    dig2 = check
+                    later = ' (2 days later)'
+            if dias > 2:
+                check -= 24
+                if len(str(check)) < 2:
+                    dig1 = 0
+                    dig2 = check
+                later = f' ({dias} days later)'
+               
+        
+        else:
+            if dig1 >= 1 and dig2 > 2:
+                dig1  -= 1
+                dig2  -= 2
+                pm = 'PM'
+                if dig2 < 0:
+                    dig1 -= 1
+                    dig2 += 10
+            else:
+                pm = 'PM'
+    if dig1 == 0:
+        if dig2 == 0:
+            dig1 = 1
+            dig2 = 2
+        else:
+            dig1 = ''
+            
+    if dia_da_semana != None:
+        semana = ['sunday','monday','tuesday', 'wednesday','thursday','friday','saturday']
+        dia_da_semana = dia_da_semana.lower()
+        dia_da_semana = semana.index(dia_da_semana)
+        dia_da_semana += dias
+        while dia_da_semana > 6:
+            dia_da_semana -= 7
+        return f'{dig1}{dig2}:{dig3}{dig4} {pm}, {(semana[dia_da_semana]).capitalize()}{later}' 
+    else:
+        return f'{dig1}{dig2}:{dig3}{dig4} {pm}{later}'
 
-# In[1]:
-
-
-def check_time(time):
+def convert_time(time):
+    dias = 0
     if len(time) == 7 or len(time) == 4:
-        return '0'+time
+        time = '0'+time
+    
+    if len(time) == 6:
+        dig3 = int(time[-2])
+        dig4 = int(time[-1])
+        dig1 = int(time[:3])
+        dias = dig1//24
+        dig1 = (dig1/24) - dias
+        dig1 *= 24
+        dig1 = int(dig1)
+        
+        if len(str(dig1)) > 1:
+            dig1 = str(dig1)
+            dig2 = int(dig1[1])
+            dig1 = int(dig1[0])
+        else:
+            dig2 = dig1
+            dig1 = 0
+            
+    elif len(time) <=5:
+        dig1 = int(time[0])
+        dig2 = int(time[1])
+        dig3 = int(time[3])
+        dig4 = int(time[4])
     else:
-        return time
+        if time[-2] == 'P':
+            dig1 = int(time[0])+1
+            dig2 = int(time[1])+2
+            dig3 = int(time[3])
+            dig4 = int(time[4])
+        else: 
+            dig1 = int(time[0])
+            dig2 = int(time[1])
+            dig3 = int(time[3])
+            dig4 = int(time[4])
+    return (dig1, dig2, dig3, dig4, dias)
 
-def change_time(value):
-    if value == 'PM':
-        return 'AM (next day)'
-    else:
-        return 'PM'
 
-
-# In[27]:
-
-
-def add_time(start, duration):
+def add_time(start, duration, dia_da_semana=None):
+    dias = 0
     pm = start[-2:]
-    start = check_time(start)
-    duration = check_time(duration)
+    start = convert_time(start)
+    duration = convert_time(duration)
+    
+    dig1 = start[0] + duration[0]
+    dig2 = start[1] + duration[1]
+    dig3 = start[2] + duration[2]
+    dig4 = start[3] + duration[3]
+    dias = duration[4]
 
-    dig1 = int(start[0]) + int(duration[0])
-    dig2 = int(start[1]) + int(duration[1])
-    dig3 = int(start[3]) + int(duration[3])
-    dig4 = int(start[4]) + int(duration[4])
-   
     if len(str(dig4)) > 1:
         dig4 -= 10
         dig3 += 1
-    
+        
     if dig3 >= 6:
         dig2 += 1
         dig3 -= 6
     
     if len(str(dig2)) > 1:
-        dig2 = str(dig2)
-        dig2 = int(dig2[1]) - 2
-        pm = change_time(pm)
-        
-    if dig2 > 2 and dig1 == 1:
-        dig1 = '' 
-        dig2 -= 2
-        pm = change_time(pm)
-        
-    if dig1 == 0:
-        dig1 = ''
+        dig2 -= 10
+        dig1 += 1
 
-    if dig1 == 1 and dig2 == 2:
-        pm = change_time(pm)
     
-    if dig1 == 2 and dig2 >=4:
-        dig1 = ''
-        dig2 = dig2 - 4
-        pm = f'{pm} (next day)'
-        
-    new_time = f'{dig1}{dig2}:{dig3}{dig4} {pm}'
-    
-    
-    return new_time
-
-
-# In[28]:
-
-
-add_time("3:30 PM", "2:12")
-        #expected = "5:42 PM"
-
-
-# In[29]:
-
-
-add_time("11:55 AM", "3:12")
-        #expected = "3:07 PM"
-
-
-# In[30]:
-
-
-add_time("9:15 PM", "5:30")
-        #expected = "2:45 AM (next day)"
-
-
-# In[31]:
-
-
-add_time("11:40 AM", "0:25")
-        #expected = "12:05 PM"
-
-
-# In[32]:
-
-
-add_time("2:59 AM", "24:00")
-        #expected = "2:59 AM (next day)"
-
-
-# In[33]:
-
-
-add_time("11:59 PM", "24:05")
-        #expected = "12:04 AM (2 days later)"
-
-
-# In[ ]:
-
-
+    if dia_da_semana != None:
+        new_time = reverse_time(dig1,dig2,dig3,dig4, dias, dia_da_semana)
+        return new_time
+    else:
+        new_time = reverse_time(dig1,dig2,dig3,dig4, dias)
+        return new_time
