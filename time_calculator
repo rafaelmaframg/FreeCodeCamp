@@ -93,7 +93,6 @@ def convert_time(time):
             dig4 = int(time[4])
     return (dig1, dig2, dig3, dig4, dias)
 
-
 def add_time(start, duration, dia_da_semana=None):
     dias = 0
     pm = start[-2:]
