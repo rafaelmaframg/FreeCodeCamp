@@ -1,0 +1,163 @@
+class Category:
+    def __init__(self, name):
+        self.name = name
+        self.value = 0
+        self.ledger = []
+        self.list_dep = {}
+        
+    def deposit(self, value, description=""):
+        value = value
+        self.value += value
+        self.list_dep["amount"] = value
+        self.list_dep["description"] = description
+        self.ledger.append(self.list_dep.copy())
+    
+    def withdraw(self, value, description=""):
+        value = value
+        if self.check_funds(value):
+            self.value -= value
+            self.list_dep["amount"] = -value
+            self.list_dep["description"] = description
+            self.ledger.append(self.list_dep.copy())
+            return True
+        else:
+            return False
+    
+    def transfer(self, value, receiver):
+        value = float(value)
+        if self.check_funds(value):
+            value = float(value)
+            self.value -= value
+            receiver.value += value
+            
+            self.list_dep["amount"] = -value
+            self.list_dep["description"] = f'Transfer to {receiver.name}'
+            self.ledger.append(self.list_dep.copy())
+            receiver.list_dep["amount"] = value
+            receiver.list_dep["description"] = f'Transfer from {self.name}'
+            receiver.ledger.append(receiver.list_dep.copy())
+            return True
+            
+        else:
+            return False
+        
+    def get_balance(self):
+        return (self.value)
+    
+    def check_funds(self, value):
+        value = float(value)
+        if (self.value - value) >= 0:
+            return True
+        else: 
+            return False
+    
+    def __str__(self):
+        titulo = int((30-len(self.name))/2)
+        string = f"{'*'*titulo}{self.name}{'*'*titulo}\n"
+        if self.ledger:
+            for i in self.ledger:
+                for j in i.values():
+                    try:
+                        if len(j) > 23:
+                            j = j[:23]
+                            string += f'{j:<23}{temporaria}\n'
+                        else:
+                            string += f'{j:<23}{temporaria}\n'
+                    except:
+                        temporaria = f'{j:>7.2f}'
+                        
+
+        return f"""{string}Total: {self.value}""" 
+def valores_negativos(lista):
+    new_list = {}
+    total = 0
+    for i in lista:
+        soma = 0
+        for item in i.ledger:
+            for dic in item.values():
+                try:
+                    if dic < 0:
+                        soma -= dic         
+                except:
+                    pass
+        
+
+        total += soma
+        new_list[i.name] = soma
+    new_list['total'] = total
+    
+    for nome,valor in new_list.items():
+        new_list[nome] = ((valor/ (new_list['total'])*100)//10)    
+  
+    return new_list
+ 
+def cria_matriz(lista):
+    temporaria = ''
+    for item in lista:
+        temporaria+= item
+    return temporaria
+
+def create_spend_chart(categories):
+    nomes = ''
+    lista_negativa = valores_negativos(categories)
+    cat_tam = len(categories)
+    barra_ori = '-'+('---'*cat_tam) 
+    tam = 0
+    for maior in categories:
+        if len(maior.name) > tam:
+            tam = len(maior.name)
+    
+   
+    #Names under chart
+    for i in range(tam):
+        
+        for item in categories:
+            try:
+                nomes += item.name[i]+'  '
+            except:
+                nomes += '   '
+        if i == (tam -1):
+            continue
+        else:
+            nomes += '\n     '
+        
+    
+    lista = [[x for x in range(cat_tam)],[x for x in range(cat_tam)],
+             [x for x in range(cat_tam)],[x for x in range(cat_tam)],
+             [x for x in range(cat_tam)],[x for x in range(cat_tam)],
+             [x for x in range(cat_tam)],[x for x in range(cat_tam)],
+             [x for x in range(cat_tam)],[x for x in range(cat_tam)]] 
+    c1 = 0
+    c2 = 0
+    del lista_negativa['total']
+    for nome,item in lista_negativa.items():
+        while c1 < item:
+            lista[c1][c2] = 'o  '
+            c1+= 1
+        while c1 < 10:
+            lista[c1][c2] = '   '
+            c1 +=1
+        if c1 == 10:
+            c1 = 0
+            if c2 < (cat_tam -1):
+                c2 += 1
+
+
+
+    return f'''Percentage spent by category
+100| {cria_matriz(lista[9])}
+ 90| {cria_matriz(lista[8])}
+ 80| {cria_matriz(lista[7])}
+ 70| {cria_matriz(lista[6])}
+ 60| {cria_matriz(lista[5])}
+ 50| {cria_matriz(lista[4])}
+ 40| {cria_matriz(lista[3])}
+ 30| {cria_matriz(lista[2])}
+ 20| {cria_matriz(lista[1])}
+ 10| {cria_matriz(lista[0])}
+  0| {'o  '*cat_tam}
+    {barra_ori}
+     {nomes}'''
+    
+    
+   
